@@ -9,10 +9,15 @@ import Post from './Post';
 import { useEffect, useState } from 'react';
 import { collection, addDoc,orderBy, getDocs, serverTimestamp, query } from "firebase/firestore";
 import { db } from '../firebase';
+import { useSelector } from 'react-redux';
+import { selectUser } from '../features/userSlice';
+import FlipMove from "react-flip-move";
 
 const Feed = () => {
     const [input,setInput] = useState('');
     const [posts,setPosts] = useState([]);
+
+    const user = useSelector(selectUser);
 
     useEffect(() =>{
 
@@ -30,15 +35,15 @@ const Feed = () => {
         }
 
         getPostsFormFirebase();
-    });
+    },[]);
 
     const sendPost = async (e) =>{
         e.preventDefault();
         await addDoc(collection(db,'posts'),{
-            name : "João Costeira",
-            description : "this is a test",
+            name : user.displayName,
+            description : user.email,
             message : input,
-            photoUrl : '',
+            photoUrl : user.photoUrl || '',
             timestamp: serverTimestamp()
         })
 
@@ -80,7 +85,7 @@ const Feed = () => {
                 </div>
             </div>
 
-            <div className='posts'>
+            <FlipMove>
                 {
                     posts.map(({ id , data : { name,description, message, photoUrl}}) =>(
                         <Post
@@ -92,7 +97,7 @@ const Feed = () => {
                         />
                     ))
                 }
-            </div>
+            </FlipMove>
         </div>
     )
 }

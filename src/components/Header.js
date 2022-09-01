@@ -6,8 +6,19 @@ import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import ChatIcon from '@mui/icons-material/Chat';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import HeaderOption from './HeaderOption';
+import { useDispatch } from 'react-redux';
+import { logout } from '../features/userSlice';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase';
 
 const Header = () => {
+
+    const dispatch = useDispatch();
+    const logoutFromApp = () => { 
+        dispatch(logout());
+        signOut(auth);
+    }
+
     return(
         <header className="header">
 
@@ -15,7 +26,7 @@ const Header = () => {
                 <img src="/linked_in.png" alt="" />
                 <div className='header__search'>
                     <SearchIcon/>
-                    <input type="text"/>
+                    <input type="text" placeholder='Search'/>
                 </div>
             </div>
 
@@ -25,7 +36,7 @@ const Header = () => {
                 <HeaderOption title='Jobs' Icon={BusinessCenterIcon} />
                 <HeaderOption title='Messaging' Icon={ChatIcon} />
                 <HeaderOption title='Notifications' Icon={NotificationsIcon} />
-                <HeaderOption title='me' avatar='/profile.jpeg' />
+                <HeaderOption onClick={logoutFromApp} title='me' avatar/>
             </div>
         </header>
     )
