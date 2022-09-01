@@ -6,24 +6,53 @@ import CalendarViewDayIcon from '@mui/icons-material/CalendarViewDay';
 import "./Feed.css";
 import InputOption from './InputOption';
 import Post from './Post';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { collection, addDoc,orderBy, getDocs, serverTimestamp, query } from "firebase/firestore";
+import { db } from '../firebase';
 
 const Feed = () => {
-
+    const [input,setInput] = useState('');
     const [posts,setPosts] = useState([]);
 
-    const sendPost=(e) =>{
+    useEffect(() =>{
+
+        const getPostsFormFirebase = async () =>{
+            const postsCollection = collection(db,'posts');
+            //const postsSnapshot = await getDocs(postsCollection)
+            //But I want them sorted...
+            const postsSnapshot = await getDocs(query(postsCollection,orderBy('timestamp','desc')));
+            const postsList = postsSnapshot.docs.map(doc => ({
+                id : doc.id,
+                data : doc.data()
+            }));
+            setPosts(postsList);
+            return postsList;
+        }
+
+        getPostsFormFirebase();
+    });
+
+    const sendPost = async (e) =>{
         e.preventDefault();
+        await addDoc(collection(db,'posts'),{
+            name : "João Costeira",
+            description : "this is a test",
+            message : input,
+            photoUrl : '',
+            timestamp: serverTimestamp()
+        })
+
+        setInput('');
+
     }
 
-    
     return(
         <div className="feed">
             <div className="feed__inputContainer">
                 <div className="feed__input">
                     <CreateIcon/>
                     <form>
-                        <input type="text"/>
+                        <input value={input} onChange={ ({target}) => { setInput(target.value) }} type="text"/>
                         <button onClick={sendPost} type="submit">Send</button>
                     </form>
                 </div>
@@ -52,12 +81,17 @@ const Feed = () => {
             </div>
 
             <div className='posts'>
-                <Post
-                    name="João Costeira"
-                    description="This is a test"
-                    message="Anim fugiat aliquip enim in minim quis reprehenderit reprehenderit deserunt elit. Voluptate nulla fugiat dolor ea sit sit consequat labore proident cillum magna mollit. Eiusmod enim minim voluptate exercitation anim magna do et cillum ullamco eu ut. Eiusmod eu ullamco ex tempor officia cupidatat aliqua ex nulla."
-
-                />
+                {
+                    posts.map(({ id , data : { name,description, message, photoUrl}}) =>(
+                        <Post
+                            key={id}
+                            name={name}
+                            description={description}
+                            message={message}
+                            photoUrl={photoUrl}
+                        />
+                    ))
+                }
             </div>
         </div>
     )
